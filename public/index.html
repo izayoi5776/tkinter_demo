@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  </head>
+  <body>
+    <div id="app-8">
+      <table border="1">
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Doc</th>
+        </tr>
+        <tr>
+          <td>{{ info.data.search_target }}</td>
+          <td>{{ info.data.type }}</td>
+          <td>{{ info.data.doc }}</td>
+        </tr>
+        <tr is='vue:todo_item'
+          v-for="d in info.data.dir"
+          v-bind:todo="info.data.search_target + '.' + d"
+          v-bind:key="d"
+        ></tr>
+      </table>
+    </div>
+  </body>
+  <!--script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script-->
+  <script src="https://unpkg.com/vue@next"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.js"></script>
+  <script src="/component/comp-row.js"></script>
+  <script>
+    //import { createApp } from 'vue'
+    //import todo-item from './comp-row.vue'
+
+    const app = Vue.createApp({
+      data () {
+        return {
+          info: {
+            data: {
+              search_target: '',
+              type: '',
+              doc: '',
+              dir: []
+            }
+          },
+        }
+      },
+      mounted () {
+        axios
+        .get('/rest/os.path')
+        .then(response => (this.info = response))
+        .catch(error => console.log(error))
+      }
+    })
+
+    app.component('todo_item', {
+      //name: 'todo_item',
+      props: ['todo'],
+      data(){
+        return {
+          info: {
+            data: {
+              search_target: '',
+              type: '',
+              doc: '',
+              dir: []
+          }
+        }
+        }
+      },
+      computed:{
+        rdoc : function(){
+          try{
+            return this.info.data.doc.replace(/\n/g, '<br>');
+          } catch{
+            return '';
+          }
+        }
+      },
+      mounted () {
+        //print("this=" + this);
+        //print("this.todo=" + this.todo);
+        //print("prpos=" + this);
+        axios
+        .get('/rest/' + this.todo)
+        .then(response => (this.info = response))
+        .catch(error => console.log(error))
+      },
+    template:`
+      <tr>
+      <td>{{ info.data.search_target }}</td>
+      <td>{{ info.data.type }}</td>
+      <td v-html="rdoc"></td>
+      </tr>`
+    })
+
+    app.mount('#app-8')
+
+
+
+    //app.component('todo_item', todo_item)
+    //app.component('components/hello.vue', "hello")
+  </script>
+</html>
