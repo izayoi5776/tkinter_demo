@@ -29,8 +29,6 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.js"></script>
   <script src="/component/comp-row.js"></script>
   <script>
-    //import { createApp } from 'vue'
-    //import todo-item from './comp-row.vue'
 
     const app = Vue.createApp({
       data () {
@@ -46,8 +44,13 @@
         }
       },
       mounted () {
+        params = new URLSearchParams(location.search);
+        search_target = "os"
+        if(params.has('s')) {
+          search_target = params.get('s');
+        }
         axios
-        .get('/rest/os.path')
+        .get('/rest/' + search_target)
         .then(response => (this.info = response))
         .catch(error => console.log(error))
       }
@@ -88,7 +91,7 @@
       },
     template:`
       <tr>
-      <td>{{ info.data.search_target }}</td>
+      <td><a :href="'?s=' + info.data.search_target">{{ info.data.search_target }}</a></td>
       <td>{{ info.data.type }}</td>
       <td v-html="rdoc"></td>
       </tr>`
@@ -96,9 +99,5 @@
 
     app.mount('#app-8')
 
-
-
-    //app.component('todo_item', todo_item)
-    //app.component('components/hello.vue', "hello")
   </script>
 </html>

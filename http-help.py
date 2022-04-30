@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHan
 import json
 
 import os.path
+from urllib.parse import urlparse
 import xml
 
 def run(server_class=HTTPServer, handler_class=BaseHTTPRequestHandler):
@@ -48,34 +49,44 @@ class MyHandler(BaseHTTPRequestHandler):
       #self.wfile.write(bytes("<br><h1>type(" + act + ")</h1><pre>" + str(type(ect)) + "</pre>", "utf-8"))
       self.request
       self.send_response(200)
-      self.send_header('Content-type', 'application/json')
+      self.send_header('Content-type', 'application/json; charset=UTF-8')
       self.end_headers()
       self.wfile.write(bytes(json.dumps(ret, ensure_ascii=False, indent=2), "utf-8"))
     else:
       # /rest/ 以外
-      #self.request
-      self.path = self.path[1:]
+      #root
       if self.path == "" or self.path == "/":
-        self.path = "index.html"
-      if(".." in self.path):
-        self.send_response(401)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.log_message("ERROR path contains .. " + str(self.path))
-        self.wfile.write(bytes("<br><h1>path error (" + self.path + ")</h1>", "utf-8"))
+          self.send_response(301)
+          self.send_header('Content-type', 'text/html; charset=UTF-8')
+          self.send_header('location', '/index.html')
+          self.end_headers()
+          self.log_message("redirect " + str(self.path))
       else:
-        fn = os.path.join(DOC_ROOT, self.path)
-        self.log_message("DOC_ROOT=" + DOC_ROOT + " fn=" + str(fn))
-        try:
-          with open(fn, "rb") as f:
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            self.wfile.write(f.read())
-            #self.wfile.write(bytes("<script>target='" + self.path + "'", "utf-8"))
-        except IOError:
-            self.send_response(404)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
+        o = urlparse(self.path)
+        opath = o.path
+        if o.path[0] == "/":
+          opath = o.path[1:]
+        self.log_message("o=" + str(o))
+        #self.path = self.path[1:]
+        if(".." in opath):
+          self.send_response(401)
+          self.send_header('Content-type', 'text/html; charset=UTF-8')
+          self.end_headers()
+          self.log_message("ERROR path contains .. " + str(opath))
+          self.wfile.write(bytes("<br><h1>path error (" + opath + ")</h1>", "utf-8"))
+        else:
+          fn = os.path.join(DOC_ROOT, opath)
+          self.log_message("DOC_ROOT=" + DOC_ROOT + " fn=" + str(fn))
+          try:
+            with open(fn, "rb") as f:
+              self.send_response(200)
+              self.send_header('Content-type', 'text/html; charset=UTF-8')
+              self.end_headers()
+              self.wfile.write(f.read())
+              #self.wfile.write(bytes("<script>target='" + self.path + "'", "utf-8"))
+          except IOError:
+              self.send_response(404)
+              self.send_header('Content-type', 'text/html; charset=UTF-8')
+              self.end_headers()
 
 run(handler_class=MyHandler)
