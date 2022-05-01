@@ -5,15 +5,17 @@ DOC_ROOT = 'public'
 
 
 from http.server import BaseHTTPRequestHandler, HTTPServer, SimpleHTTPRequestHandler
+import inspect
 import json
 
 import os.path
+import re
 from urllib.parse import urlparse
 import xml
 import pydoc
 import sys
 from io import TextIOWrapper, BytesIO
-
+import importlib
 
 def run(server_class=HTTPServer, handler_class=BaseHTTPRequestHandler):
     server_address = ('', PORT)
@@ -39,8 +41,17 @@ class MyHandler(BaseHTTPRequestHandler):
           "doc" : ""
         }
       else:
-        ect = eval(act)
-        #self.log_message(str(dir(act)))
+        ect = None
+        try:
+          ect = eval(act)
+        except:
+          #eval("" + act + " = importlib.importlib.import_module('" + act + "')")
+          #importlib.import_module(act)
+          #act0 = act.split(".")[0]
+          #globals().update({act0:sys.modules[act0]})
+          #ect = eval(act)
+          self.safeImport(act)
+        self.log_message("ect=" + str((ect)))
         ret = {
           "search_target" : act,
           "type" : str(type(ect)),
@@ -62,22 +73,25 @@ class MyHandler(BaseHTTPRequestHandler):
       self.end_headers()
       # see https://stackoverflow.com/questions/1218933/can-i-redirect-the-stdout-into-some-sort-of-string-buffer/19345047#19345047
       # setup the environment
-      old_stdout = sys.stdout
-      sys.stdout = TextIOWrapper(BytesIO(), sys.stdout.encoding)
-
+      #old_stdout = sys.stdout
+      #sys.stdout = TextIOWrapper(BytesIO(), sys.stdout.encoding)
       # do something that writes to stdout or stdout.buffer
-      pydoc.help.listmodules()
-      
+      #pydoc.help.listmodules()
       # get output
-      sys.stdout.seek(0)      # jump to the start
-      out = sys.stdout.read() # read output
-
+      #sys.stdout.seek(0)      # jump to the start
+      #out = sys.stdout.read() # read output
       # restore stdout
-      sys.stdout.close()
-      sys.stdout = old_stdout
-
+      #sys.stdout.close()
+      #sys.stdout = old_stdout
+      #out = re.sub("(?s)^.*?\n\n", "", out)  # remove the first line
+      #out = re.sub("(?s)\n\n.*?$", "", out) # remove the last line
+      #outlist = re.split("W+|\s+|\n+", out) # split by whitespace
+      #outlist = [x for x in outlist if x != ""] # remove empty strings
+      #outlist = list(filter(None, outlist))  # remove empty strings another way
+      #outlist.sort()
+      outlist = filter(lambda x: inspect.ismodule(x[1]), sys.modules.items())
       ret = {
-        "modulelist" : out
+        "modulelist" : list(map(lambda x:x[0], outlist))
       }
       self.wfile.write(bytes(json.dumps(ret, ensure_ascii=False, indent=2), "utf-8"))
     else:
@@ -117,5 +131,23 @@ class MyHandler(BaseHTTPRequestHandler):
               self.send_response(404)
               self.send_header('Content-type', 'text/html; charset=UTF-8')
               self.end_headers()
+  def safeImport(self, mod):
+    if mod != "":
+      try:
+        self.log_message("try import " + str(mod))
+        #globals().update({mod:sys.modules[mod]})
+        globals().update({mod:importlib.import_module(mod)})
+        o = eval(mod)
+      except:
+        #self.safeImport(re.sub("\..*?$", "", mod))
+        self.safeImport(re.sub("(.*)(\..+?)$", "\\1", mod))
+        self.log_message("try again import " + str(mod))
+        try:
+          #globals().update({mod:sys.modules[mod]})
+          globals().update({mod:importlib.import_module(mod)})
+        except:
+          self.log_error("try again import " + str(mod) + " failed")
+          pass
+
 
 run(handler_class=MyHandler)
