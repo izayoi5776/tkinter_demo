@@ -10,6 +10,10 @@ import json
 import os.path
 from urllib.parse import urlparse
 import xml
+import pydoc
+import sys
+from io import TextIOWrapper, BytesIO
+
 
 def run(server_class=HTTPServer, handler_class=BaseHTTPRequestHandler):
     server_address = ('', PORT)
@@ -52,15 +56,40 @@ class MyHandler(BaseHTTPRequestHandler):
       self.send_header('Content-type', 'application/json; charset=UTF-8')
       self.end_headers()
       self.wfile.write(bytes(json.dumps(ret, ensure_ascii=False, indent=2), "utf-8"))
+    elif(self.path.startswith("/module/list")):
+      self.send_response(200)
+      self.send_header('Content-type', 'application/json; charset=UTF-8')
+      self.end_headers()
+      # see https://stackoverflow.com/questions/1218933/can-i-redirect-the-stdout-into-some-sort-of-string-buffer/19345047#19345047
+      # setup the environment
+      old_stdout = sys.stdout
+      sys.stdout = TextIOWrapper(BytesIO(), sys.stdout.encoding)
+
+      # do something that writes to stdout or stdout.buffer
+      pydoc.help.listmodules()
+      
+      # get output
+      sys.stdout.seek(0)      # jump to the start
+      out = sys.stdout.read() # read output
+
+      # restore stdout
+      sys.stdout.close()
+      sys.stdout = old_stdout
+
+      ret = {
+        "modulelist" : out
+      }
+      self.wfile.write(bytes(json.dumps(ret, ensure_ascii=False, indent=2), "utf-8"))
     else:
-      # /rest/ 以外
-      #root
+      # redirect / to index.html
       if self.path == "" or self.path == "/":
           self.send_response(301)
+          #self.send_response(200)
           self.send_header('Content-type', 'text/html; charset=UTF-8')
-          self.send_header('location', '/index.html')
+          self.send_header('location', '/modulelist.html')
           self.end_headers()
           self.log_message("redirect " + str(self.path))
+          #self.wfile.write(bytes("<br><pre>" + help("modules") + ")</pre>", "utf-8"))
       else:
         o = urlparse(self.path)
         opath = o.path

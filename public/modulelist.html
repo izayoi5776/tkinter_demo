@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <style >
+      table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app-8">
+      <table border="1">
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Doc</th>
+        </tr>
+        <tr>
+          <td>{{ info.data.search_target }}</td>
+          <td>{{ info.data.type }}</td>
+          <td>{{ info.data.doc }}</td>
+        </tr>
+        <tr is='vue:todo_item'
+          v-for="d in info.data.dir"
+          v-bind:todo="info.data.search_target + '.' + d"
+          v-bind:key="d"
+        ></tr>
+      </table>
+      <pre>{{ info.data.modulelist }}</pre>
+    </div>
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.js"></script>
+    <script>
+      const app = Vue.createApp({
+        data () {
+          return {
+            info: {
+              data: {
+                search_target: '',
+                type: '',
+                doc: '',
+                dir: []
+              }
+            },
+          }
+        },
+        mounted () {
+          params = new URLSearchParams(location.search);
+          search_target = "os"
+          if(params.has('s')) {
+            search_target = params.get('s');
+          }
+          axios
+          .get('/module/list') 
+          .then(response => (this.info.data = response.data))
+        },
+      })
+      app.mount('#app-8')
+    </script>
+  </body>
+</html>
