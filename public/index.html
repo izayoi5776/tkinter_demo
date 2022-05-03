@@ -33,7 +33,7 @@
       <!-- self  -->
       <div class="container">
         <div class="row">
-          <div class="col">
+          <div class="col-5">
             <div class="card">
               <div class="card-header">
                 type
@@ -45,21 +45,20 @@
             <br>
             <div class="card">
               <div class="card-header">
-                __doc__
-              </div>
-              <div class="card-body">
-                <p class="card-text" v-html="rdoc"></p>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card">
-              <div class="card-header">
-                pydoc.render_doc()
+                pydoc.render_doc(..., renderer=pydoc.plaintext)
               </div>
               <div class="card-body">
                 <p class="card-text" v-html="rpdoc"></p>
-                <!--p class="card-text" v-html="info.data.pydoch"></p-->
+              </div>
+            </div>
+          </div>
+          <div class="col-7">
+            <div class="card">
+              <div class="card-header">
+                pydoc.render_doc(act, renderer=pydoc.html)
+              </div>
+              <div class="card-body">
+                <p class="card-text" v-html="rpdoch"></p>
               </div>
             </div>
           </div>
@@ -95,6 +94,8 @@
               search_target: '',
               type: '',
               doc: '',
+              pydoc: '',
+              pydoch: '<div></div>',
               dir: []
             }
           },
@@ -108,7 +109,7 @@
         }
         axios
         .get('/rest/' + search_target)
-        .then(response => {this.info = response; console.log(response.data.type)})
+        .then(response => {this.info = response})
         .catch(error => console.log(error))
       },
       computed:{
@@ -138,7 +139,51 @@
           } catch{
             return '';
           }
+        },
+        // rewrite <a> links
+        rpdoch : function(){
+          try{
+            div = this.htmlToElement(this.info.data.pydoch)
+            const links = div.getElementsByTagName("a");
+            //console.log(links.length)
+            for (var i = 0; i < links.length; i++) {
+              //links[i].setAttribute("target", "_blank");
+              //console.log("i=" + i + " link=" + links[i])
+              const href = links[i].getAttribute("href")
+              if(href) {
+                if(href.startsWith("http://") || href.startsWith("https://")) {
+                  // skip external links
+                  //console.log("skip external link: " + href)
+                }else if(href.startsWith("#")) {
+                  // skip internal link
+                  //console.log("skip internal link: " + href)
+                }else{
+                  // rewrite link
+                  newhref = "?s=" + href.replace(/\.html/g, "")
+                  //console.log("i=" + i + "rewrite link: " + href + " to " + newhref)
+                  links[i].setAttribute("href", newhref);
+                }
+              }
+            }
+            return div.outerHTML;
+          } catch(e){
+            console.log(e)
+            return '';
+          }
         }
+      },
+      methods:{
+          /**
+           * @param {String} HTML representing a single element
+           * @return {Element}
+           * @see https://stackoverflow.com/questions/494143/creating-a-new-dom-element-from-an-html-string-using-built-in-dom-methods-or-pro
+           */
+          htmlToElement: function(html) {
+              var template = document.createElement('template');
+              //html = html.trim(); // Never return a text node of whitespace as the result
+              template.innerHTML = html;
+              return template.content.firstChild;
+          }
       }
     })
 

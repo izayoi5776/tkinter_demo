@@ -53,15 +53,28 @@ class MyHandler(BaseHTTPRequestHandler):
           #globals().update({act0:sys.modules[act0]})
           #ect = eval(act)
           self.safeImport(act)
-          ect = eval(act)
+          try:
+            ect = eval(act)
+          except:
+            pass
         #self.log_message("ect=" + str(ect) + " type=" + str(type(ect)))
+        pdoc = ""
+        try:
+          pdoc = pydoc.render_doc(act, renderer=pydoc.plaintext)
+        except:
+          pass
+        pdoch = ""
+        try:
+          pdoch = pydoc.render_doc(act, renderer=pydoc.html)
+        except:
+          pass
         ret = {
           "search_target" : act,
-          "type" : str(type(ect)),
-          "dir" : dir(ect),
-          "doc" : ect.__doc__,
-          "pydoc" : pydoc.render_doc(act, renderer=pydoc.plaintext),
-          "pydoch" : pydoc.render_doc(act, renderer=pydoc.html)
+          "type" : "" if ect is None else str(type(ect)),
+          "dir" : "" if ect is None else dir(ect),
+          "doc" : "" if ect is None else ect.__doc__,
+          "pydoc" : pdoc,
+          "pydoch" : "<div>" + pdoch + "</div>"
         }
       #self.wfile.write(bytes("<br><h1>dir(" + act + ")</h1>" + str(dir(ect)) + "", "utf-8"))
       #self.log_message(str(dir(act.__doc__)))
@@ -159,6 +172,7 @@ class MyHandler(BaseHTTPRequestHandler):
     import data from a module
     '''
     if mod != "":
+      o = None
       try:
         self.log_message("try import " + str(mod))
         #globals().update({mod:sys.modules[mod]})
