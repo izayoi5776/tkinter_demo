@@ -12,6 +12,7 @@
   </head>
   <body>
     <div id="app-8">
+      <!-- breadcrumb  -->
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -29,16 +30,16 @@
           <!--li class="breadcrumb-item active" aria-current="page">Data</li-->
         </ol>
       </nav>
+      <!-- self  -->
+      <h1>{{ info.data.search_target }}</h1>
+      <h2>{{ info.data.type }}</h2>
+      <div>{{ info.data.doc }}</div>
+      <!-- dir()  -->
       <table class="table table-bordered table-hover">
         <tr class="table-primary">
-          <th>Name</th>
-          <th>Type</th>
-          <th>Doc</th>
-        </tr>
-        <tr>
-          <td>{{ info.data.search_target }}</td>
-          <td>{{ info.data.type }}</td>
-          <td>{{ info.data.doc }}</td>
+          <th>dir( {{ info.data.search_target }} )</th>
+          <th>type</th>
+          <th>__doc__</th>
         </tr>
         <tr is='vue:todo_item'
           v-for="d in info.data.dir"

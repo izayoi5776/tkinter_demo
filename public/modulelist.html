@@ -7,12 +7,22 @@
   <body>
     <div id="app-8">
       <h1>Module List</h1>
+      <h2>built-in</h2>
       <button
-        v-for="d in info.data.modulelist"
+        v-for="(val, key, index) in info.data.builtin"
+        type="button" 
+        class="btn btn-outline-primary"
+        v-on:click="this.btnclick(key)"
+      >{{ key }}</button>
+      <br>
+      <h2>on-disk</h2>
+      <button
+        v-for="(val, key, index) in info.data.ondisk"
         type="button" 
         class="btn btn-outline-dark"
-        v-on:click="this.btnclick(d)"
-      >{{ d }}</button>
+        v-on:click="this.btnclick(key)"
+        :title="val"
+      >{{ key }}</button>
 
     </div>
     <script src="https://unpkg.com/vue@next"></script>

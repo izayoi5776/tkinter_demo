@@ -25,8 +25,8 @@ def run(server_class=HTTPServer, handler_class=BaseHTTPRequestHandler):
 class MyHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     #self.wfile.write(bytes("<html><body><h1>Hello World</h1></body></html>", "utf-8"))
-    self.log_message("self.request=" + str(self.request))
-    self.log_message("self.path=" + str(self.path))
+    #self.log_message("self.request=" + str(self.request))
+    #self.log_message("self.path=" + str(self.path))
     #self.log_message("self.client_address=" + str(self.client_address))
     #self.log_message("self.server=" + str(self.server))
     #print("dir(http)=" + str(dir("http")))
@@ -51,7 +51,7 @@ class MyHandler(BaseHTTPRequestHandler):
           #globals().update({act0:sys.modules[act0]})
           #ect = eval(act)
           self.safeImport(act)
-        self.log_message("ect=" + str((ect)))
+        #self.log_message("ect=" + str((ect)))
         ret = {
           "search_target" : act,
           "type" : str(type(ect)),
@@ -89,9 +89,20 @@ class MyHandler(BaseHTTPRequestHandler):
       #outlist = [x for x in outlist if x != ""] # remove empty strings
       #outlist = list(filter(None, outlist))  # remove empty strings another way
       #outlist.sort()
-      outlist = filter(lambda x: inspect.ismodule(x[1]), sys.modules.items())
+      #outlist = filter(lambda x: inspect.ismodule(x[1]), sys.modules.items())
+      outlist = {
+        "builtin" : {},
+        "ondisk" : {}
+      }
+      for i in sys.modules.items():
+        if "(built-in)" in str(i[1]):
+          outlist["builtin"][i[0]] = str(i[1])
+        else:
+          outlist["ondisk"][i[0]] = str(i[1])
       ret = {
-        "modulelist" : list(map(lambda x:x[0], outlist))
+        #"modulelist" : list(map(lambda x:x[0], outlist))
+        "builtin" : outlist["builtin"],
+        "ondisk" : outlist["ondisk"]
       }
       self.wfile.write(bytes(json.dumps(ret, ensure_ascii=False, indent=2), "utf-8"))
     else:
