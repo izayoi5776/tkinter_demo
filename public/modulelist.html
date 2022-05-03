@@ -7,23 +7,29 @@
   <body>
     <div id="app-8">
       <h1>Module List</h1>
-      <h2>built-in</h2>
+      <h2>sys.builtin_module_names</h2>
       <button
-        v-for="(val, key, index) in info.data.builtin"
+        v-for="(key, index) in info.data.builtin"
         type="button" 
         class="btn btn-outline-primary"
         v-on:click="this.btnclick(key)"
       >{{ key }}</button>
       <br>
-      <h2>on-disk</h2>
+      <h2>sys.modules</h2>
       <button
         v-for="(val, key, index) in info.data.ondisk"
         type="button" 
-        class="btn btn-outline-dark"
+        class="btn btn-outline-info"
         v-on:click="this.btnclick(key)"
         :title="val"
       >{{ key }}</button>
-
+      <h2>sys.stdlib_module_names</h2>
+      <button
+        v-for="(key, index) in info.data.other"
+        type="button" 
+        class="btn btn-outline-dark"
+        v-on:click="this.btnclick(key)"
+      >{{ key }}</button>
     </div>
     <script src="https://unpkg.com/vue@next"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.js"></script>

@@ -92,7 +92,8 @@ class MyHandler(BaseHTTPRequestHandler):
       #outlist = filter(lambda x: inspect.ismodule(x[1]), sys.modules.items())
       outlist = {
         "builtin" : {},
-        "ondisk" : {}
+        "ondisk" : {},
+        "other" : {}
       }
       for i in sys.modules.items():
         if "(built-in)" in str(i[1]):
@@ -101,8 +102,9 @@ class MyHandler(BaseHTTPRequestHandler):
           outlist["ondisk"][i[0]] = str(i[1])
       ret = {
         #"modulelist" : list(map(lambda x:x[0], outlist))
-        "builtin" : outlist["builtin"],
-        "ondisk" : outlist["ondisk"]
+        "builtin" : sys.builtin_module_names,
+        "ondisk" : outlist["ondisk"],
+        "other" : list(set(sys.stdlib_module_names) - set(sys.builtin_module_names) - set(outlist["ondisk"].keys()))
       }
       self.wfile.write(bytes(json.dumps(ret, ensure_ascii=False, indent=2), "utf-8"))
     else:
