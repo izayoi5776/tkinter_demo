@@ -6,7 +6,9 @@
   </head>
   <body>
     <div id="app-8">
-      <h1>Module List</h1>
+      <h2>sys.version</h2>
+      <div>{{ info.data.version }}</div>
+      <!--h1>Module List</h1-->
       <h2>sys.builtin_module_names</h2>
       <button
         v-for="(key, index) in info.data.builtin"

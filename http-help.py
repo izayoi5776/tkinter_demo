@@ -10,6 +10,7 @@ import json
 
 import os.path
 import re
+from time import sleep
 from urllib.parse import urlparse
 import xml
 import pydoc
@@ -31,6 +32,7 @@ class MyHandler(BaseHTTPRequestHandler):
     #self.log_message("self.server=" + str(self.server))
     #print("dir(http)=" + str(dir("http")))
     act = None
+    # serve rest
     if(self.path.startswith("/rest/")):
       act = self.path[6:]
       if len(act) == 0:
@@ -51,12 +53,15 @@ class MyHandler(BaseHTTPRequestHandler):
           #globals().update({act0:sys.modules[act0]})
           #ect = eval(act)
           self.safeImport(act)
-        #self.log_message("ect=" + str((ect)))
+          ect = eval(act)
+        #self.log_message("ect=" + str(ect) + " type=" + str(type(ect)))
         ret = {
           "search_target" : act,
           "type" : str(type(ect)),
           "dir" : dir(ect),
-          "doc" : ect.__doc__
+          "doc" : ect.__doc__,
+          "pydoc" : pydoc.render_doc(act, renderer=pydoc.plaintext),
+          "pydoch" : pydoc.render_doc(act, renderer=pydoc.html)
         }
       #self.wfile.write(bytes("<br><h1>dir(" + act + ")</h1>" + str(dir(ect)) + "", "utf-8"))
       #self.log_message(str(dir(act.__doc__)))
@@ -67,6 +72,7 @@ class MyHandler(BaseHTTPRequestHandler):
       self.send_header('Content-type', 'application/json; charset=UTF-8')
       self.end_headers()
       self.wfile.write(bytes(json.dumps(ret, ensure_ascii=False, indent=2), "utf-8"))
+    # server module list  
     elif(self.path.startswith("/module/list")):
       self.send_response(200)
       self.send_header('Content-type', 'application/json; charset=UTF-8')
@@ -104,9 +110,11 @@ class MyHandler(BaseHTTPRequestHandler):
         #"modulelist" : list(map(lambda x:x[0], outlist))
         "builtin" : sys.builtin_module_names,
         "ondisk" : outlist["ondisk"],
-        "other" : list(set(sys.stdlib_module_names) - set(sys.builtin_module_names) - set(outlist["ondisk"].keys()))
+        "other" : list(set(sys.stdlib_module_names) - set(sys.builtin_module_names) - set(outlist["ondisk"].keys())),
+        "version": sys.version
       }
       self.wfile.write(bytes(json.dumps(ret, ensure_ascii=False, indent=2), "utf-8"))
+    # server static file
     else:
       # redirect / to index.html
       if self.path == "" or self.path == "/":
@@ -144,22 +152,29 @@ class MyHandler(BaseHTTPRequestHandler):
               self.send_response(404)
               self.send_header('Content-type', 'text/html; charset=UTF-8')
               self.end_headers()
+
+
   def safeImport(self, mod):
+    '''
+    import data from a module
+    '''
     if mod != "":
       try:
         self.log_message("try import " + str(mod))
         #globals().update({mod:sys.modules[mod]})
         globals().update({mod:importlib.import_module(mod)})
         o = eval(mod)
+        self.log_message("after import " + str(mod) + " o=" + str(o) + " type=" + str(type(o)))
       except:
         #self.safeImport(re.sub("\..*?$", "", mod))
         self.safeImport(re.sub("(.*)(\..+?)$", "\\1", mod))
-        self.log_message("try again import " + str(mod))
+        self.log_message("try 2 import " + str(mod))
+        self.log_message("after 2 import " + str(mod) + " o=" + str(o) + " type=" + str(type(o)))
         try:
           #globals().update({mod:sys.modules[mod]})
           globals().update({mod:importlib.import_module(mod)})
         except:
-          self.log_error("try again import " + str(mod) + " failed")
+          self.log_error("try 2 import " + str(mod) + " failed")
           pass
 
 

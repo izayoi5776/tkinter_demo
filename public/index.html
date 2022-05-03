@@ -31,9 +31,41 @@
         </ol>
       </nav>
       <!-- self  -->
-      <h1>{{ info.data.search_target }}</h1>
-      <h2>{{ info.data.type }}</h2>
-      <div>{{ info.data.doc }}</div>
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            <div class="card">
+              <div class="card-header">
+                type
+              </div>
+              <div class="card-body">
+                <p class="card-text">{{ info.data.type }}</p>
+              </div>
+            </div>
+            <br>
+            <div class="card">
+              <div class="card-header">
+                __doc__
+              </div>
+              <div class="card-body">
+                <p class="card-text" v-html="rdoc"></p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card">
+              <div class="card-header">
+                pydoc.render_doc()
+              </div>
+              <div class="card-body">
+                <p class="card-text" v-html="rpdoc"></p>
+                <!--p class="card-text" v-html="info.data.pydoch"></p-->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- dir()  -->
       <table class="table table-bordered table-hover">
         <tr class="table-primary">
@@ -53,7 +85,6 @@
   <!--script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script-->
   <script src="https://unpkg.com/vue@next"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.js"></script>
-  <script src="/component/comp-row.js"></script>
   <script>
 
     const app = Vue.createApp({
@@ -77,7 +108,7 @@
         }
         axios
         .get('/rest/' + search_target)
-        .then(response => (this.info = response))
+        .then(response => {this.info = response; console.log(response.data.type)})
         .catch(error => console.log(error))
       },
       computed:{
@@ -90,6 +121,23 @@
             ret[i] = ret[i-1] + "." + this.bread[i];
           }
           return ret;
+        },
+        rdoc : function(){
+          try{
+            return this.info.data.doc.replace(/\n/g, '<br>');
+          } catch{
+            return '';
+          }
+        },
+        rpdoc : function(){
+          try{
+            ret = this.info.data.pydoc
+            ret = ret.replace(/^(\s*[A-Z\s]+\s*)$/mg, '<b>$1</b>');
+            ret = ret.replace(/\n/g, '<br>');
+            return ret;
+          } catch{
+            return '';
+          }
         }
       }
     })
