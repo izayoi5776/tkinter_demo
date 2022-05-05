@@ -131,13 +131,14 @@ class MyHandler(BaseHTTPRequestHandler):
     else:
       # redirect / to index.html
       if self.path == "" or self.path == "/":
-          self.send_response(301)
+          #self.send_response(301)
           #self.send_response(200)
-          self.send_header('Content-type', 'text/html; charset=UTF-8')
-          self.send_header('location', '/modulelist.html')
-          self.end_headers()
-          self.log_message("redirect " + str(self.path))
+          #self.send_header('Content-type', 'text/html; charset=UTF-8')
+          #self.send_header('location', '/modulelist.html')
+          #self.end_headers()
+          #self.log_message("redirect " + str(self.path))
           #self.wfile.write(bytes("<br><pre>" + help("modules") + ")</pre>", "utf-8"))
+          self.sendFile(os.path.join(DOC_ROOT, "onepage.html"))
       else:
         o = urlparse(self.path)
         opath = o.path
@@ -153,23 +154,25 @@ class MyHandler(BaseHTTPRequestHandler):
           self.wfile.write(bytes("<br><h1>path error (" + opath + ")</h1>", "utf-8"))
         else:
           fn = os.path.join(DOC_ROOT, opath)
-          self.log_message("DOC_ROOT=" + DOC_ROOT + " fn=" + str(fn))
-          try:
-            with open(fn, "rb") as f:
-              self.send_response(200)
-              if(fn.endswith(".js")):
-                self.send_header('Content-type', 'application/javascript; charset=utf-8')
-              else:
-                self.send_header('Content-type', 'text/html; charset=UTF-8')
-              self.end_headers()
-              self.wfile.write(f.read())
-              #self.wfile.write(bytes("<script>target='" + self.path + "'", "utf-8"))
-          except IOError:
-              self.send_response(404)
-              self.send_header('Content-type', 'text/html; charset=UTF-8')
-              self.end_headers()
+          self.sendFile(fn)
 
-
+  def sendFile(self, fn):
+    self.log_message("sendFile(" + str(fn) + ")")
+    try:
+      with open(fn, "rb") as f:
+        self.send_response(200)
+        if(fn.endswith(".js")):
+          self.send_header('Content-type', 'application/javascript; charset=utf-8')
+        else:
+          self.send_header('Content-type', 'text/html; charset=UTF-8')
+        self.end_headers()
+        self.wfile.write(f.read())
+        #self.wfile.write(bytes("<script>target='" + self.path + "'", "utf-8"))
+    except IOError:
+        self.send_response(404)
+        self.send_header('Content-type', 'text/html; charset=UTF-8')
+        self.end_headers()
+    
   def safeImport(self, mod):
     '''
     import data from a module

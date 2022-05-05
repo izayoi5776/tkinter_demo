@@ -1,6 +1,9 @@
 // 1. 定义路由组件.
 // 也可以从其他文件导入
 import {Home} from './component/home.js'
+import {Detail} from './component/detail.js'
+import {Item} from './component/item.js'
+
 //Home = require('./component/home.js')
 
 //const Home = { template: '<div>Home</div>' }
@@ -12,6 +15,7 @@ const About = { template: '<div>About</div>' }
 const routes = [
   { path: '/', component: Home },
   { path: '/about', component: About },
+  { path: '/detail/:target', component: Detail },
 ]
 
 // 3. 创建路由实例并传递 `routes` 配置
@@ -28,6 +32,7 @@ const app = Vue.createApp({})
 //确保 _use_ 路由实例使
 //整个应用支持路由。
 //const Home = app.component('./component/home.js')
+app.component('Item', Item)
 app.use(router)
 
 app.mount('#app')
