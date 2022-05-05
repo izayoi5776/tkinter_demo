@@ -157,7 +157,10 @@ class MyHandler(BaseHTTPRequestHandler):
           try:
             with open(fn, "rb") as f:
               self.send_response(200)
-              self.send_header('Content-type', 'text/html; charset=UTF-8')
+              if(fn.endswith(".js")):
+                self.send_header('Content-type', 'application/javascript; charset=utf-8')
+              else:
+                self.send_header('Content-type', 'text/html; charset=UTF-8')
               self.end_headers()
               self.wfile.write(f.read())
               #self.wfile.write(bytes("<script>target='" + self.path + "'", "utf-8"))
